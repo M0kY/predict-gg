@@ -1,0 +1,47 @@
+{
+  "name": "predict-gg",
+  "version": "1.0.0",
+  "description": "Gathering League of Legends mathes data and building a neural network for match outcome classification",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "classify": "node classify.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Moreno Vračar",
+  "license": "MIT",
+  "dependencies": {
+    "@tensorflow/tfjs": "^0.14.1",
+    "@tensorflow/tfjs-node": "^0.2.1",
+    "chalk": "^2.4.1",
+    "dotenv": "^6.2.0",
+    "kayn": "^0.9.2",
+    "lodash": "^4.17.11",
+    "moment": "^2.23.0",
+    "mongoose": "^5.4.1",
+    "windows-build-tools": "^5.0.0"
+  },
+  "devDependencies": {
+    "eslint-config-airbnb": "^17.1.0",
+    "eslint-plugin-import": "^2.14.0",
+    "eslint-plugin-prettier": "^3.0.0",
+    "husky": "^1.2.1",
+    "lint-staged": "^8.1.0",
+    "prettier": "^1.15.3"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "echo 'Beep Bop... The time of man has come to the end...' && npm run lint-prettier && echo 'GG! Commiting now...'"
+    }
+  },
+  "lint-staged": {
+    "*.{json,css,md}": [
+      "prettier --write",
+      "git add"
+    ],
+    "*.js": [
+      "eslint --max-warnings 0 --fix",
+      "git add"
+    ]
+  }
+}

@@ -1,0 +1,25 @@
+{
+    "extends": "airbnb",
+    "parserOptions": {
+        "ecmaVersion": 8,
+        "sourceType": "module"
+    },
+    "rules": {
+        "no-console": "off",
+        "no-unused-vars": "warn",
+        "no-eval": "error",
+        "no-useless-escape": "error",
+        "no-loop-func": "error",
+        "semi": "error",
+        "indent": "off",
+        "arrow-body-style": "off",
+        "no-plusplus": "off",
+        "prefer-template": "warn",
+        "no-underscore-dangle": "off",
+        "max-len": "off",
+        "linebreak-style": "off"
+    },
+    "plugins": [
+      "prettier"
+    ]
+}
