@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node index.js",
     "classify": "node classify.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint-prettier": "lint-staged",
+    "eslint": "eslint --max-warnings 0 ."
   },
   "author": "Moreno Vračar",
   "license": "MIT",
