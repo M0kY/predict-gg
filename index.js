@@ -10,7 +10,7 @@ const GameStatsModel = require('./src/model.js');
 
 const dataPointsObject = require('./src/dataPointsDefs');
 
-const MATCH_ID = 3873599449;
+const MATCH_ID = process.env.STARTING_MATCH_ID;
 const BATCH_SIZE = process.env.BATCH_SIZE;
 const GAMES_PER_PLAYER = process.env.GAMES_PER_PLAYER;
 
@@ -85,6 +85,12 @@ const main = async () => {
     
       const participantIdentities = _.get(res, 'participantIdentities', []);
       const mlGameData = await getParticipantsHistory(res.participants, participantIdentities, res.gameCreation);
+      
+      if (mlGameData.length !== 10) {
+        console.log(chalk.black.bgYellow(`Skipping match ${res.gameId} due to missing participants data`));
+        continue;
+      }
+
       //console.log(`================== DATA ==================`);
       //console.log(mlGameData);
 
@@ -98,6 +104,7 @@ const main = async () => {
     }
   }
   console.log(chalk.black.bgYellow(`Script execution time: ${_.round(moment.duration(moment().diff(startTime)).asMinutes(), 2)} min`));
+  process.exit(0);
 }
 
 getParticipantsHistory = async (participants, participantIdentities, gameCreation) => {
