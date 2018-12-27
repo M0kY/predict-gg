@@ -73,7 +73,7 @@ const main = async () => {
       const res = await kayn.MatchV4.get(matchId);
       
       if (res.queueId !== RANKED_5X5_SOLO) {
-        console.log(halk.black.bgYellow(`Skipping match ${res.gameId} due to queue not being RANKED_5X5_SOLO`));
+        console.log(chalk.black.bgYellow(`Skipping match ${res.gameId} due to queue not being RANKED_5X5_SOLO`));
         continue;
       }
 
