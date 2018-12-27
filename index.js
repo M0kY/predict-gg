@@ -11,8 +11,8 @@ const GameStatsModel = require('./src/model.js');
 const dataPointsObject = require('./src/dataPointsDefs');
 
 const MATCH_ID = 3873599449;
-const BATCH_SIZE = 30;
-const GAMES_PER_PLAYER = 10;
+const BATCH_SIZE = process.env.BATCH_SIZE;
+const GAMES_PER_PLAYER = process.env.GAMES_PER_PLAYER;
 
 const RANKED_5X5_SOLO = 420;
 
@@ -72,7 +72,10 @@ const main = async () => {
       const gameStatsTime = moment();
       const res = await kayn.MatchV4.get(matchId);
       
-      if (res.queueId !== RANKED_5X5_SOLO) continue;
+      if (res.queueId !== RANKED_5X5_SOLO) {
+        console.log(halk.black.bgYellow(`Skipping match ${res.gameId} due to queue not being RANKED_5X5_SOLO`));
+        continue;
+      }
 
       const winner = res.teams.find(teamData => teamData.teamId === 100).win === 'Win' ? 1 : 2
       
