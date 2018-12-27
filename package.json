@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node index.js",
     "classify": "node classify.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "lint-staged && eslint --max-warnings 0 .",
     "lint-prettier": "lint-staged",
     "eslint": "eslint --max-warnings 0 ."
   },
@@ -32,7 +32,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "echo 'Beep Bop... The time of man has come to the end...' && npm run lint-prettier && echo 'GG! Commiting now...'"
+      "pre-commit": "echo 'Beep Bop... The time of man has come to the end...'  && npm test && echo 'GG! Commiting now...'"
     }
   },
   "lint-staged": {
