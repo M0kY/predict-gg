@@ -22,23 +22,5 @@
     "moment": "^2.23.0",
     "mongoose": "^5.4.1",
     "windows-build-tools": "^5.0.0"
-  },
-  "devDependencies": {
-    "eslint": "^5.11.0",
-    "eslint-plugin-prettier": "^3.0.0",
-    "husky": "^1.2.1",
-    "lint-staged": "^8.1.0",
-    "prettier": "^1.15.3"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "echo 'Beep Bop... The time of man has come to the end...'  && npm test && echo 'GG! Commiting now...'"
-    }
-  },
-  "lint-staged": {
-    "*.{js,json,css,md}": [
-      "prettier --write",
-      "git add"
-    ]
   }
 }

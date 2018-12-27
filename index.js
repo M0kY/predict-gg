@@ -39,6 +39,7 @@ const RANKED_5X5_SOLO = 420;
 
 const matchIdList = _.range(MATCH_ID, MATCH_ID - BATCH_SIZE);
 
+const champions = {};
 
 const kayn = Kayn(process.env.RIOT_API_KEY)({
   region: REGIONS.EUROPE_WEST,
@@ -63,13 +64,13 @@ const errorLog = e => {
   } else {
     console.log(chalk.bgRed(`Error ${e.message}`));
   }
-}
+};
 
 const filterGamesByTime = (matches, gameCreation) => {
   return matches.filter(game =>
     game.timestamp < gameCreation
   ).map(game => game.gameId).slice(0, GAMES_PER_PLAYER);
-}
+};
 
 const getSummonerByParticipantId = (participantIdentities, participantId) => (
   participantIdentities.find(part => part.participantId === participantId)
