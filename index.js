@@ -39,8 +39,6 @@ const RANKED_5X5_SOLO = 420;
 
 const matchIdList = _.range(MATCH_ID, MATCH_ID - BATCH_SIZE);
 
-const champions = {};
-
 const kayn = Kayn(process.env.RIOT_API_KEY)({
   region: REGIONS.EUROPE_WEST,
   locale: 'en_GB',
@@ -80,6 +78,7 @@ const getParticipantIdByAccountId = (participantIdentities, accountId) => (
   participantIdentities.find(part => part.player.currentAccountId === accountId).participantId
 );
 
+let champions = {};
 
 const main = async () => {
 
