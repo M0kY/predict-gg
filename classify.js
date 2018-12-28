@@ -26,8 +26,9 @@ const main = async () => {
 
     const testX = data.map(record => record.stats).slice(-TEST_BATCH_SIZE);
     const testY = data.map(record => record.winner).slice(-TEST_BATCH_SIZE);
-    
-    
+
+    const inputShape = [data[0].stats.length, Object.keys(data[0].stats[0]).length + 1];
+
     const trainingData = tf.tensor3d(trainX.map(record => record.map((prop, index) => {   
       const kek = Object.keys(prop).map(key => prop[key])
       kek.push(index < 5 ? 100 : 200)
@@ -48,7 +49,7 @@ const main = async () => {
     
     const model = tf.sequential();
    
-    model.add(tf.layers.batchNormalization({ inputShape: [10, 21] }));
+    model.add(tf.layers.batchNormalization({ inputShape }));
     model.add(tf.layers.flatten());
 
     model.add(tf.layers.dense({
