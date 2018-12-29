@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node index.js",
     "classify": "node classify.js",
+    "livegame": "node livegame.js",
     "test": "lint-staged && eslint --max-warnings 0 .",
     "lint-prettier": "lint-staged",
     "eslint": "eslint --max-warnings 0 ."
@@ -21,6 +22,7 @@
     "lodash": "^4.17.11",
     "moment": "^2.23.0",
     "mongoose": "^5.4.1",
+    "mongoose-timestamp": "^0.6.0",
     "windows-build-tools": "^5.0.0"
   }
 }

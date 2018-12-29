@@ -6,20 +6,20 @@ const chalk = require('chalk');
 
 // connect to database with mongoose
 require('./src/dbconnect');
-const GameStatsModel = require('./src/model.js');
+const GameStatsModel = require('./src/models/gameStatsModel.js');
 
 const dataPointsObject = require('./src/dataPointsDefs');
 
-const MATCH_ID = process.env.STARTING_MATCH_ID;
-const BATCH_SIZE = process.env.BATCH_SIZE;
-const GAMES_PER_PLAYER = process.env.GAMES_PER_PLAYER;
+const MATCH_ID = parseInt(process.env.STARTING_MATCH_ID, 10);
+const BATCH_SIZE = parseInt(process.env.BATCH_SIZE, 10) || 500;
+const GAMES_PER_PLAYER = parseInt(process.env.GAMES_PER_PLAYER, 10) || 30;
 
-const RANKED_5X5_SOLO = 420;
+const RANKED_5X5_SOLO = parseInt(process.env.QUEUE_ID, 10) || 420;
 
-const matchIdList = _.range(MATCH_ID, MATCH_ID - BATCH_SIZE);
+const REGION = REGIONS[process.env.MATCH_REGION] || REGIONS.EUROPE_WEST;
 
 const kayn = Kayn(process.env.RIOT_API_KEY)({
-  region: REGIONS.EUROPE_WEST,
+  region: REGION,
   locale: 'en_GB',
   debugOptions: {
       isEnabled: true,
@@ -33,6 +33,15 @@ const kayn = Kayn(process.env.RIOT_API_KEY)({
       shouldExitOn403: false,
   },
 });
+
+const logInitialSettings = () => {
+  console.log(chalk.black.bgMagenta('Settings:', 
+    'Region:', REGION, 
+    'Queue ID:', RANKED_5X5_SOLO,
+    'Games per player:', GAMES_PER_PLAYER,
+    'Batch size:', BATCH_SIZE
+  ));
+}
 
 const errorLog = e => {
   if (e.error) {
@@ -60,6 +69,15 @@ const getParticipantIdByAccountId = (participantIdentities, accountId) => (
 let champions = {};
 
 const main = async () => {
+  
+  if (!MATCH_ID || typeof MATCH_ID !== 'number') {
+    console.log(chalk.bgRed('Error: STARTING_MATCH_ID env variable not specified or invalid'));
+    process.exit(0);
+  }
+
+  const matchIdList = _.range(MATCH_ID, MATCH_ID - BATCH_SIZE);
+
+  logInitialSettings();
 
   try {
     champions = await kayn.DDragon.Champion.listFullDataByIdWithParentAsId();
@@ -71,13 +89,19 @@ const main = async () => {
     try {
       const gameStatsTime = moment();
       const res = await kayn.MatchV4.get(matchId);
-      
+
       if (res.queueId !== RANKED_5X5_SOLO) {
         console.log(chalk.black.bgYellow(`Skipping match ${res.gameId} due to queue not being RANKED_5X5_SOLO`));
         continue;
       }
 
-      const winner = res.teams.find(teamData => teamData.teamId === 100).win === 'Win' ? 1 : 2
+      const dbData = await GameStatsModel.findOne({ gameId: res.gameId });
+      if (dbData) {
+        console.log(chalk.black.bgYellow(`Skipping match ${res.gameId} due to already being in the database`));
+        continue;
+      }
+
+      const winner = res.teams.find(teamData => teamData.teamId === 100).win === 'Win' ? 1 : 2;
       
       console.log(chalk.black.bgMagenta(
         `==== GAME ID: ${res.gameId} TIME: ${moment(res.gameCreation, 'x').format("DD/MM/YYYY HH:mm:ss")} WINNER: ${winner} ===`
@@ -91,11 +115,18 @@ const main = async () => {
         continue;
       }
 
-      //console.log(`================== DATA ==================`);
-      //console.log(mlGameData);
+      const dbRes = await GameStatsModel.create({ 
+        gameId: res.gameId,
+        regionId: res.platformId,
+        seasonId: res.seasonId,
+        queueId: res.queueId,
+        gameCreation: res.gameCreation,
+        version: res.gameVersion,
+        stats: mlGameData, 
+        winner
+      });
 
-      const dbRes = await GameStatsModel.create({ gameId: res.gameId, stats: mlGameData, winner });
-      if (dbRes) console.log(chalk.black.bgGreen('DB record created'));
+      if (dbRes) { console.log(chalk.black.bgGreen('DB record created')) };
 
       console.log(chalk.black.bgYellow(`Game execution time: ${_.round(moment.duration(moment().diff(gameStatsTime)).asMinutes(), 2)} min`));
 
@@ -107,7 +138,7 @@ const main = async () => {
   process.exit(0);
 }
 
-getParticipantsHistory = async (participants, participantIdentities, gameCreation) => {
+const getParticipantsHistory = async (participants, participantIdentities, gameCreation) => {
   const gameStats2d = [];
   for await (const pl of participants) {
     const summoner = getSummonerByParticipantId(participantIdentities, pl.participantId);
@@ -125,8 +156,8 @@ getParticipantsHistory = async (participants, participantIdentities, gameCreatio
         champions.data[pl.championId].name
       );
 
-      const stats = await getStatsFromMatchList(list, summoner.player.currentAccountId);
-      await gameStats2d.splice(pl.participantId, 0, stats);
+      const stats = { teamId: pl.teamId, ...await getStatsFromMatchList(list, summoner.player.currentAccountId)};
+      gameStats2d.splice(pl.participantId, 0, stats);
 
     } catch(e) {
       errorLog(e);
@@ -141,6 +172,7 @@ const getStatsFromMatchList = async (matchIdList, currentAccountId) => {
     const key = dataPoint.replace('stats.', '').replace('timeline.', '');
     stats[key] = 0;
   });
+  stats['numberOfGames'] = 0;
 
   for (const matchId of matchIdList) {
     try {
@@ -155,6 +187,7 @@ const getStatsFromMatchList = async (matchIdList, currentAccountId) => {
           stats[key] = stats[key] + _.get(data, dataPoint, 0);
         }
       });
+      stats.numberOfGames = stats.numberOfGames + 1;
 
     } catch(e) {
       errorLog(e);
@@ -162,9 +195,10 @@ const getStatsFromMatchList = async (matchIdList, currentAccountId) => {
   }
 
   for (const dataPoint in stats) {
-    stats[dataPoint] = stats[dataPoint] && _.round(stats[dataPoint] / matchIdList.length, 2);
+    if (stats[dataPoint] && dataPoint !== 'numberOfGames') {
+      stats[dataPoint] = _.round(stats[dataPoint] / stats.numberOfGames, 2)
+    }
   }
-  stats['numberOfGames'] = matchIdList.length;
 
   return stats;
 };
