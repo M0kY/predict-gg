@@ -7,6 +7,8 @@ The goal of this project is to gather League of Legends games data from the Riot
 Make a local copy of this repo: `https://github.com/M0kY/predict-gg.git`  
 Setup a MongoDB database either on your local machine or remote https://cloud.mongodb.com.
 
+Create a collection named `gamestats` and import the data from `./dataset/gamestats.json`. If you want to gather your own data simply follow the instruction below on how to collect training data.
+
 Inside the folder of your local repo run  
 `npm install`
 
