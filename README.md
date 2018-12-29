@@ -10,8 +10,7 @@ Setup a MongoDB database either on your local machine or remote https://cloud.mo
 Inside the folder of your local repo run  
 `npm install`
 
-Create a `.env` file and use `.env.example` as template. Set the database
-connection info.  
+Create a `.env` file and use `.env.example` as template. Set the database connection info.  
 The `RIOT_API_KEY` is required for making API request to the Riot Games API and can be obtained by registering a developer account on http://developer.riotgames.com.  
 When gathering data you need to provide a `STARTING_MATCH_ID` and the `BATCH_SIZE` which the script then uses to create a range to loop in. The default value for STARTING_MATCH_ID is a random match played in the `EUROPE_WEST` region and `BATCH_SIZE` is set to `1000`.  
 In the end the dataset won't be of the same size as `BATCH_SIZE` due to not all game IDs in the range being valid IDs or the queue type not being `RANKED_5x5_SOLO`.  
