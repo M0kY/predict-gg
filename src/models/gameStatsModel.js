@@ -11,10 +11,10 @@ const gameStatsSchema = new mongoose.Schema({
     stats: {},
     winner: Number,
 }, {
-    collection: 'gamestats-v2',
+    collection: 'gamestats',
 });
 
 gameStatsSchema.plugin(timestamps);
 
-const model = mongoose.model('gamestats-v2', gameStatsSchema);
+const model = mongoose.model('gamestats', gameStatsSchema);
 module.exports = model;
