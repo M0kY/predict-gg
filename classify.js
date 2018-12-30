@@ -1,6 +1,6 @@
 require('dotenv').config();
 const tf = require('@tensorflow/tfjs');
-//require("@tensorflow/tfjs-node");
+require("@tensorflow/tfjs-node");
 const _ = require('lodash');
 const chalk = require('chalk');
 
