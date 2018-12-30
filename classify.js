@@ -87,7 +87,7 @@ const main = async () => {
 
   } catch(e) {
     console.log(chalk.bgRed('Error:', e.message));
-    process.exit(1);
+    process.exit(0);
   }
 }
 

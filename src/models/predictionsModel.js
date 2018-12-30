@@ -6,6 +6,7 @@ const predictionsSchema = new mongoose.Schema({
     regionId: String,
     queueId: Number,
     gameCreation: Number,
+    stats: {},
     executionDurationInMs: Number,
     classificationModelId: String,
     prediction: Array

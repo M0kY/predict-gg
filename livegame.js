@@ -1,15 +1,15 @@
-
 require('dotenv').config();
 const chalk = require('chalk');
 const { Kayn, REGIONS } = require('kayn');
 const _ = require('lodash');
 const moment = require('moment');
-const dataPointsObject = require('./src/dataPointsDefs');
-
 const tf = require('@tensorflow/tfjs');
+
 require('./src/dbconnect');
 const ClassificationModel = require('./src/models/classificationModel.js');
 const PredictionsModel = require('./src/models/predictionsModel.js')
+
+const getStatsFromMatchList = require('./src/shared/getStatsFromMatchList');
 
 const GAMES_PER_PLAYER = parseInt(process.env.GAMES_PER_PLAYER, 10) || 30;
 const RANKED_5X5_SOLO = parseInt(process.env.QUEUE_ID, 10) || 420;
@@ -23,32 +23,25 @@ const errorLog = e => {
       console.log(chalk.bgRed(`No live game found for given summoner.`));
     } else {
       const error = JSON.parse(e.error.error);
-      console.log(chalk.bgRed(`Error ${error.status.status_code} - ${error.status.message}`));
+      console.log(chalk.bgRed(`Error: ${error.status.status_code} - ${error.status.message}`));
     }  
   } else {
-    console.log(chalk.bgRed(`Error ${e.message}`));
+    console.log(chalk.bgRed(`Error: ${e.message}`));
   }
 };
-
-const getParticipantIdByAccountId = (participantIdentities, accountId) => (
-  participantIdentities.find(part => part.player.currentAccountId === accountId).participantId
-);
 
 let champions = {};
 
 const main = async () => {
-  
-  if (!region || !Object.values(REGIONS).includes(region)) {
-    console.log(chalk.bgRed('Invalid region provided', region));
-    process.exit(0);
-  }
-
-  if (!summonerName) {
-    console.log(chalk.bgRed('No summoner name provided', summonerName));
-    process.exit(0);
-  }
-
   try {
+    if (!region || !Object.values(REGIONS).includes(region)) {
+      throw new Error('Invalid region provided', region);
+    }
+
+    if (!summonerName) {
+      throw new Error('No summoner name provided');
+    }
+
     const startTime = moment();
 
     const kayn = Kayn(process.env.RIOT_API_KEY)({
@@ -95,6 +88,7 @@ const main = async () => {
       regionId: liveGame.platformId,
       queueId: liveGame.gameQueueConfigId,
       gameCreation: liveGame.gameStartTime,
+      stats: playerStats,
       executionDurationInMs: executionDuration,
       classificationModelId: modelData._id,
       prediction: Array.prototype.slice.call(result.dataSync())
@@ -105,6 +99,7 @@ const main = async () => {
     process.exit(0);
   } catch(e) {
     errorLog(e);
+    process.exit(0);
   }
 }
 
@@ -135,42 +130,5 @@ const getParticipantsData = async (kayn, participants) => {
   }
   return gameStats2d;
 }
-
-const getStatsFromMatchList = async (kayn, matchIdList, accountId) => {
-  let stats = {};
-  dataPointsObject.map(dataPoint => {
-    const key = dataPoint.replace('stats.', '').replace('timeline.', '');
-    stats[key] = 0;
-  });
-  stats['numberOfGames'] = 0;
-
-  for (const matchId of matchIdList) {
-    try {
-      const res = await kayn.MatchV4.get(matchId);
-      const participantId = getParticipantIdByAccountId(res.participantIdentities, accountId);
-      const data = res.participants.find(part => part.participantId === participantId);
-      dataPointsObject.map(dataPoint => {
-        let key = dataPoint.replace('stats.', '').replace('timeline.', '');
-        if (dataPoint === 'stats.win') {
-          stats[key] = stats[key] + (_.get(data, dataPoint, false) ? 1 : 0);
-        } else {
-          stats[key] = stats[key] + _.get(data, dataPoint, 0);
-        }
-      });
-      stats.numberOfGames = stats.numberOfGames + 1;
-
-    } catch(e) {
-      errorLog(e);
-    }
-  }
-
-  for (const dataPoint in stats) {
-    if (stats[dataPoint] && dataPoint !== 'numberOfGames') {
-      stats[dataPoint] = _.round(stats[dataPoint] / matchIdList.length, 2)
-    }
-  }
-
-  return stats;
-};
 
 main();
