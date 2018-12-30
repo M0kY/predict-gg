@@ -4,6 +4,7 @@ const { Kayn, REGIONS } = require('kayn');
 const _ = require('lodash');
 const moment = require('moment');
 const tf = require('@tensorflow/tfjs');
+require("@tensorflow/tfjs-node");
 
 require('./src/dbconnect');
 const ClassificationModel = require('./src/models/classificationModel.js');
