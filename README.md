@@ -10,7 +10,9 @@ Setup a MongoDB database either on your local machine or remote https://cloud.mo
 Create a collection named `gamestats` and import the data from `./dataset/gamestats.json`. If you want to gather your own data simply follow the instruction below on how to collect training data.
 
 Inside the folder of your local repo run  
-`npm install`
+```
+npm install
+```
 
 Create a `.env` file and use `.env.example` as template. Set the database connection info.  
 The `RIOT_API_KEY` is required for making API request to the Riot Games API and can be obtained by registering a developer account on http://developer.riotgames.com.  
@@ -49,17 +51,23 @@ From the dataset `10` items are used for testing the model while the rest are us
 ## Basic Usage
 
 First collect the training data by running  
-`npm start`
+```
+npm start
+```
 
 There is a limit to the number of available API call that can be made in a specific timeframe. It is possible to run multiple instances of the script for different regions since the limit is region based. The average time to collect a single game with the default settings is ~7 mins.
 
 When there is a big enough collection of gathered games train the classifier by running
 
-`npm run classify`
+```
+npm run classify
+```
 
 With the trained model it is now possible to predict a live game by running the following script with the **region** and **summonerName** arguments.
 
-`npm run livegame "region" "summonerName"`
+```
+npm run livegame "region" "summonerName"
+```
 
 ## Conclusion
 
