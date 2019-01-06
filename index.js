@@ -107,16 +107,16 @@ const main = async () => {
         console.log(chalk.black.bgYellow(`Game execution time: ${_.round(moment.duration(moment().diff(gameStatsTime)).asMinutes(), 2)} min`));
 
       } catch (e) {
-        errorLog(e);
+        console.log(chalk.bgRed(e));
+        console.log(chalk.bgRed('SKIPPING GAME DUE TO ERROR'));
       }
     }
     console.log(chalk.black.bgYellow(`Script execution time: ${_.round(moment.duration(moment().diff(startTime)).asMinutes(), 2)} min`));
-    process.exit(0);
   
   } catch(e) {
-    errorLog(e);
-    process.exit(0);
+    console.log(chalk.bgRed(e))
   }
+  process.exit(0);
 }
 
 const getParticipantsHistory = async (kayn, participants, participantIdentities, gameCreation) => {
