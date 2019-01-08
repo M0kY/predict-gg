@@ -64,7 +64,11 @@ const main = async () => {
     for await (const matchId of matchIdList) {
       try {
         const gameStatsTime = moment();
-        const res = await kayn.MatchV4.get(matchId);
+        const res = await kayn.MatchV4.get(matchId)
+          .then()
+          .catch(e => {
+            errorLog(e);
+          });
 
         if (res.queueId !== RANKED_5X5_SOLO) {
           console.log(chalk.black.bgYellow(`Skipping match ${res.gameId} due to queue not being RANKED_5X5_SOLO`));
@@ -137,7 +141,7 @@ const getParticipantsHistory = async (kayn, participants, participantIdentities,
         champions.data[pl.championId].name
       );
 
-      const stats = { teamId: pl.teamId, ...await getStatsFromMatchList(kayn, list, summoner.player.currentAccountId)};
+      const stats = { teamId: pl.teamId, championId: pl.championId, ...await getStatsFromMatchList(kayn, list, summoner.player.currentAccountId)};
       gameStats2d.splice(pl.participantId, 0, stats);
 
     } catch(e) {

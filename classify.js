@@ -29,7 +29,7 @@ const main = async () => {
     const testY = data.map(record => record.winner).slice(-TEST_BATCH_SIZE);
 
     const inputShape = [data[0].stats.length, Object.keys(data[0].stats[0]).length];
-
+    // [prop.teamId, prop.kills*prop.numberOfGames, prop.deaths*prop.numberOfGames, prop.win*prop.numberOfGames]
     const trainingData = tf.tensor3d(trainX.map(record => record.map(prop =>   
       Object.keys(prop).map(key => prop[key])
     )));
@@ -43,17 +43,24 @@ const main = async () => {
     const testingLabels = tf.tensor2d(testY.map(score => 
       score === 1 ? [1, 0] : [0, 1]
     ));
-    
+
     const model = tf.sequential();
-   
+
     model.add(tf.layers.batchNormalization({ inputShape }));
     model.add(tf.layers.flatten());
 
     model.add(tf.layers.dense({
-      activation: 'relu',
-      units: 15,
+      activation: 'sigmoid',
+      units: 3,
       kernelInitializer: 'varianceScaling',
       useBias: true
+    }));
+
+    model.add(tf.layers.dense({
+      activation: 'sigmoid',
+      units: 5,
+      kernelInitializer: 'varianceScaling',
+      useBias: false
     }));
     
     model.add(tf.layers.dense({
@@ -65,15 +72,25 @@ const main = async () => {
     
     model.compile({
       loss: 'categoricalCrossentropy',
-      optimizer: tf.train.adam(.009),
+      optimizer: tf.train.adam(.001),
+      metrics: ['accuracy'],
     });
     
-    const history = await model.fit(trainingData, trainingLabels, {epochs: 100})
+    const history = await model.fit(trainingData, trainingLabels, {
+      epochs: 100,
+      verbose: 0,
+    })
     console.log(chalk.black.bgYellow('Loss:', history.history.loss[history.history.loss.length - 1]));
+    console.log(chalk.black.bgYellow('Acc:', history.history.acc[history.history.acc.length - 1]));
     
-    model.predict(testingData).print();
-    testingLabels.print();
-    console.log('Testing data game IDs:', data.slice(-TEST_BATCH_SIZE).map(record => record.gameId));
+    const results = model.predict(testingData);
+    results.print()
+    
+    let sum = 0;
+    Array.from(results.argMax(1).dataSync()).map((prediction, index) => {
+      prediction === Array.from(testingLabels.argMax(1).dataSync())[index] && sum ++;
+    });
+    console.log(`Test Accuracy: ${sum} / ${TEST_BATCH_SIZE} - ${_.round(sum/TEST_BATCH_SIZE*100, 2)}%,`);
     
     const saveModel = await model.save(tf.io.withSaveHandler(obj2save => obj2save));
     await ClassificationModel.create({
