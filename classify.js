@@ -51,14 +51,28 @@ const main = async () => {
 
     model.add(tf.layers.dense({
       activation: 'sigmoid',
-      units: 3,
+      units: 40,
       kernelInitializer: 'varianceScaling',
       useBias: true
     }));
 
     model.add(tf.layers.dense({
       activation: 'sigmoid',
-      units: 5,
+      units: 35,
+      kernelInitializer: 'varianceScaling',
+      useBias: true
+    }));
+
+    model.add(tf.layers.dense({
+      activation: 'sigmoid',
+      units: 15,
+      kernelInitializer: 'varianceScaling',
+      useBias: true
+    }));
+
+    model.add(tf.layers.dense({
+      activation: 'sigmoid',
+      units: 15,
       kernelInitializer: 'varianceScaling',
       useBias: false
     }));
@@ -72,13 +86,15 @@ const main = async () => {
     
     model.compile({
       loss: 'categoricalCrossentropy',
-      optimizer: tf.train.adam(.001),
+      optimizer: tf.train.adam(.05),
       metrics: ['accuracy'],
     });
     
     const history = await model.fit(trainingData, trainingLabels, {
-      epochs: 100,
-      verbose: 0,
+      epochs: 1000,
+      validationSplit: 0.2,
+      //verbose: 0,
+      shuffle: true,
     })
     console.log(chalk.black.bgYellow('Loss:', history.history.loss[history.history.loss.length - 1]));
     console.log(chalk.black.bgYellow('Acc:', history.history.acc[history.history.acc.length - 1]));

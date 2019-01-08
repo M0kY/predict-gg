@@ -31,12 +31,6 @@ const getStatsFromMatchList = async (kayn, matchIdList, accountId) => {
     }
   }
 
-  for (const dataPoint in stats) {
-    if (stats[dataPoint] && dataPoint !== 'numberOfGames') {
-      stats[dataPoint] = _.round(stats[dataPoint] / matchIdList.length, 2)
-    }
-  }
-
   return stats;
 };
 
