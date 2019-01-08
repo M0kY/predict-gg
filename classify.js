@@ -67,7 +67,7 @@ const main = async () => {
       activation: 'sigmoid',
       units: 15,
       kernelInitializer: 'varianceScaling',
-      useBias: true
+      useBias: false
     }));
 
     model.add(tf.layers.dense({
@@ -116,12 +116,10 @@ const main = async () => {
     });
     console.log(chalk.black.bgGreen('Model saved to database.'));
 
-    process.exit(0);
-
   } catch(e) {
     console.log(chalk.bgRed('Error:', e.message));
-    process.exit(0);
   }
+  process.exit(0);
 }
 
 main();

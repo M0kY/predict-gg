@@ -101,7 +101,6 @@ const main = async () => {
           seasonId: res.seasonId,
           queueId: res.queueId,
           gameCreation: res.gameCreation,
-          gameDuration: res.gameDuration,
           version: res.gameVersion,
           stats: mlGameData, 
           winner

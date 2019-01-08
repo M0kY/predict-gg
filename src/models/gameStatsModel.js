@@ -7,12 +7,11 @@ const gameStatsSchema = new mongoose.Schema({
     seasonId: Number,
     queueId: Number,
     gameCreation: Number,
-    gameDuration: Number,
     version: String,
     stats: {},
     winner: Number,
 }, {
-    collection: 'gamestats-v2',
+    collection: 'gamestats',
 });
 
 gameStatsSchema.plugin(timestamps);

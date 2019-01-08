@@ -97,11 +97,11 @@ const main = async () => {
     console.log(chalk.black.bgGreen('Prediction record added to database.'))
 
     console.log(chalk.black.bgYellow(`Script execution time: ${_.round(executionDuration.asMinutes(), 2)} min`));
-    process.exit(0);
+
   } catch(e) {
-    errorLog(e);
-    process.exit(0);
+    errorLog(e);   
   }
+  process.exit(0);
 }
 
 const getParticipantsData = async (kayn, participants) => {
