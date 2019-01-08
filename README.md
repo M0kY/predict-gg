@@ -23,7 +23,8 @@ last `30` games the player played the same champion. The number of games is defi
 The collected datapoints for each player are the following:
 
 ```
-  teamId  
+  teamId
+  championId
   visionScore
   longestTimeSpentLiving
   kills
