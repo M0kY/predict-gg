@@ -3,6 +3,7 @@ const tf = require('@tensorflow/tfjs');
 require("@tensorflow/tfjs-node");
 const _ = require('lodash');
 const chalk = require('chalk');
+const moment = require('moment');
 
 require('./src/dbconnect');
 const GameStatsModel = require('./src/models/gameStatsModel.js');
@@ -11,7 +12,7 @@ const ClassificationModel = require('./src/models/classificationModel.js');
 const TEST_BATCH_SIZE = process.env.TEST_BATCH_SIZE;
 
 const main = async () => {
-  
+  const startTime = moment();
   try {
     const data = await GameStatsModel.find({})
     console.log(chalk.black.bgGreen('DB data successfuly loaded.'))
@@ -31,11 +32,15 @@ const main = async () => {
     const inputShape = [data[0].stats.length, Object.keys(data[0].stats[0]).length];
     // [prop.teamId, prop.kills*prop.numberOfGames, prop.deaths*prop.numberOfGames, prop.win*prop.numberOfGames]
     const trainingData = tf.tensor3d(trainX.map(record => record.map(prop =>   
-      Object.keys(prop).map(key => prop[key])
-    )));
+      Object.keys(prop).map(key => 
+        key !== 'teamId' && key !== 'championId' && key !== 'numberOfGames' && prop.numberOfGames > 0 ? _.round(prop[key]/prop.numberOfGames, 2) : prop[key])
+        //[prop.teamId, prop.championId, prop.numberOfGames > 0 ? _.round(prop.kills/prop.numberOfGames, 2) : prop.kills, prop.numberOfGames > 0 ? _.round(prop.deaths/prop.numberOfGames, 2) : prop.deaths, prop.numberOfGames > 0 ? _.round(prop.assists/prop.numberOfGames, 2) : prop.assists, prop.numberOfGames > 0 ? _.round(prop.win/prop.numberOfGames, 2) : prop.win, prop.numberOfGames]
+      )));
     const testingData = tf.tensor3d(testX.map(record => record.map(prop =>  
-      Object.keys(prop).map(key => prop[key])
-    )));
+      Object.keys(prop).map(key => 
+        key !== 'teamId' && key !== 'championId' && key !== 'numberOfGames' && prop.numberOfGames > 0 ? _.round(prop[key]/prop.numberOfGames, 2) : prop[key])
+        //[prop.teamId, prop.championId, prop.numberOfGames > 0 ? _.round(prop.kills/prop.numberOfGames, 2) : prop.kills, prop.numberOfGames > 0 ? _.round(prop.deaths/prop.numberOfGames, 2) : prop.deaths, prop.numberOfGames > 0 ? _.round(prop.assists/prop.numberOfGames, 2) : prop.assists, prop.numberOfGames > 0 ? _.round(prop.win/prop.numberOfGames, 2) : prop.win, prop.numberOfGames]
+      )));
 
     const trainingLabels = tf.tensor2d(trainY.map(score => 
       score === 1 ? [1, 0] : [0, 1]
@@ -47,36 +52,35 @@ const main = async () => {
     const model = tf.sequential();
 
     model.add(tf.layers.batchNormalization({ inputShape }));
+
+    model.add(tf.layers.dense({
+      activation: 'sigmoid',
+      units: 55,
+      kernelInitializer: 'varianceScaling',
+      useBias: true
+    }));
+
+    model.add(tf.layers.dense({
+      activation: 'sigmoid',
+      units: 45,
+      kernelInitializer: 'varianceScaling',
+      useBias: true
+    }));
+
+    model.add(tf.layers.dense({
+      activation: 'sigmoid',
+      units: 27,
+      kernelInitializer: 'varianceScaling',
+      useBias: false
+    }));
+
+    model.add(tf.layers.dense({
+      activation: 'sigmoid',
+      units: 13,
+      kernelInitializer: 'varianceScaling',
+      useBias: false
+    }));
     model.add(tf.layers.flatten());
-
-    model.add(tf.layers.dense({
-      activation: 'sigmoid',
-      units: 40,
-      kernelInitializer: 'varianceScaling',
-      useBias: true
-    }));
-
-    model.add(tf.layers.dense({
-      activation: 'sigmoid',
-      units: 35,
-      kernelInitializer: 'varianceScaling',
-      useBias: true
-    }));
-
-    model.add(tf.layers.dense({
-      activation: 'sigmoid',
-      units: 15,
-      kernelInitializer: 'varianceScaling',
-      useBias: false
-    }));
-
-    model.add(tf.layers.dense({
-      activation: 'sigmoid',
-      units: 15,
-      kernelInitializer: 'varianceScaling',
-      useBias: false
-    }));
-    
     model.add(tf.layers.dense({
       activation: 'softmax',
       units: 2,
@@ -86,7 +90,7 @@ const main = async () => {
     
     model.compile({
       loss: 'categoricalCrossentropy',
-      optimizer: tf.train.adam(.05),
+      optimizer: tf.train.adam(.001),
       metrics: ['accuracy'],
     });
     
@@ -119,6 +123,7 @@ const main = async () => {
   } catch(e) {
     console.log(chalk.bgRed('Error:', e.message));
   }
+  console.log(chalk.black.bgYellow(`Script execution time: ${_.round(moment.duration(moment().diff(startTime)).asMinutes(), 2)} min`));
   process.exit(0);
 }
 

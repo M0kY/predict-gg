@@ -11,7 +11,7 @@ const gameStatsSchema = new mongoose.Schema({
     stats: {},
     winner: Number,
 }, {
-    collection: 'gamestats',
+    collection: 'gamestats-v3',
 });
 
 gameStatsSchema.plugin(timestamps);

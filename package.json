@@ -18,7 +18,7 @@
     "@tensorflow/tfjs-node": "^0.2.1",
     "chalk": "^2.4.1",
     "dotenv": "^6.2.0",
-    "kayn": "^0.9.2",
+    "kayn": "^0.9.4",
     "lodash": "^4.17.11",
     "moment": "^2.23.0",
     "mongoose": "^5.4.1",
