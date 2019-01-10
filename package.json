@@ -7,6 +7,7 @@
     "start": "node index.js",
     "classify": "node classify.js",
     "livegame": "node livegame.js",
+    "cleanup": "node cleanup.js",
     "test": "lint-staged && eslint --max-warnings 0 .",
     "lint-prettier": "lint-staged",
     "eslint": "eslint --max-warnings 0 ."
