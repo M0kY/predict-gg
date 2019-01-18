@@ -30,15 +30,13 @@ const main = async () => {
     const testY = data.map(record => record.winner).slice(-TEST_BATCH_SIZE);
 
     const inputShape = [data[0].stats.length, Object.keys(data[0].stats[0]).length];
-    // [prop.teamId, prop.kills*prop.numberOfGames, prop.deaths*prop.numberOfGames, prop.win*prop.numberOfGames]
-    const trainingData = tf.tensor3d(trainX);//.map(record => record.map(prop =>
-        // key !== 'teamId' && key !== 'championId' && key !== 'numberOfGames' && prop.numberOfGames > 0 ? _.round(prop[key]/prop.numberOfGames, 2) : prop[key])
-        // [prop.teamId, prop.championId, prop.numberOfGames > 0 ? _.round(prop.kills/prop.numberOfGames, 2) : prop.kills, prop.numberOfGames > 0 ? _.round(prop.deaths/prop.numberOfGames, 2) : prop.deaths, prop.numberOfGames > 0 ? _.round(prop.assists/prop.numberOfGames, 2) : prop.assists, prop.numberOfGames > 0 ? _.round(prop.win/prop.numberOfGames, 2) : prop.win, prop.numberOfGames]
-      //));
-    const testingData = tf.tensor3d(testX);//.map(record => record.map(prop =>
-        // key !== 'teamId' && key !== 'championId' && key !== 'numberOfGames' && prop.numberOfGames > 0 ? _.round(prop[key]/prop.numberOfGames, 2) : prop[key])
-        // [prop.teamId, prop.championId, prop.numberOfGames > 0 ? _.round(prop.kills/prop.numberOfGames, 2) : prop.kills, prop.numberOfGames > 0 ? _.round(prop.deaths/prop.numberOfGames, 2) : prop.deaths, prop.numberOfGames > 0 ? _.round(prop.assists/prop.numberOfGames, 2) : prop.assists, prop.numberOfGames > 0 ? _.round(prop.win/prop.numberOfGames, 2) : prop.win, prop.numberOfGames]
-      //));
+
+    const trainingData = tf.tensor3d(trainX.map(record => record.map((prop, index) =>
+      index < 7 && index !== 2 && prop.numberOfGames > 0 ? _.round(prop/record[2], 2) : prop)
+    ));
+    const testingData = tf.tensor3d(testX.map(record => record.map((prop, index) =>
+      index < 7 && index !== 2 && prop.numberOfGames > 0 ? _.round(prop/record[2], 2) : prop)
+    ));
 
     const trainingLabels = tf.tensor2d(trainY.map(score => 
       score === 1 ? [1, 0] : [0, 1]
@@ -51,34 +49,16 @@ const main = async () => {
 
     model.add(tf.layers.batchNormalization({ inputShape }));
 
-    model.add(tf.layers.dense({
-      activation: 'sigmoid',
-      units: 1400,
-      kernelInitializer: 'varianceScaling',
-      useBias: true
-    }));
+    model.add(tf.layers.leakyReLU());
+    model.add(tf.layers.leakyReLU());
+    model.add(tf.layers.dropout({
+      rate: 0.5
+    }));  
+    model.add(tf.layers.leakyReLU());
+    model.add(tf.layers.leakyReLU());
 
-    model.add(tf.layers.dense({
-      activation: 'sigmoid',
-      units: 1500,
-      kernelInitializer: 'varianceScaling',
-      useBias: true
-    }));
-
-    model.add(tf.layers.dense({
-      activation: 'sigmoid',
-      units: 600,
-      kernelInitializer: 'varianceScaling',
-      useBias: false
-    }));
-
-    model.add(tf.layers.dense({
-      activation: 'sigmoid',
-      units: 15,
-      kernelInitializer: 'varianceScaling',
-      useBias: false
-    }));
     model.add(tf.layers.flatten());
+
     model.add(tf.layers.dense({
       activation: 'softmax',
       units: 2,
@@ -93,7 +73,7 @@ const main = async () => {
     });
     
     const history = await model.fit(trainingData, trainingLabels, {
-      epochs: 100,
+      epochs: 1000,
       validationSplit: 0.2,
       //verbose: 0,
       shuffle: true,
@@ -110,13 +90,13 @@ const main = async () => {
     const values = Array.from(results.max(1).dataSync());
     Array.from(results.argMax(1).dataSync()).map((prediction, index) => {
       prediction === Array.from(testingLabels.argMax(1).dataSync())[index] && sum++;
-      if (values[index] > 0.85) {
+      if (values[index] > process.env.ACCURACY_FILTER) {
         count++;
         prediction === Array.from(testingLabels.argMax(1).dataSync())[index] && filteredSum++;
       };
     });
     console.log(`Test Accuracy: ${sum} / ${TEST_BATCH_SIZE} - ${_.round(sum/TEST_BATCH_SIZE*100, 2)}%,`);
-    console.log(`Filtered Accuracy: ${filteredSum} / ${count} - ${_.round(filteredSum/count*100, 2) || 0}%,`)
+    console.log(`Filtered Accuracy (values greater than ${process.env.ACCURACY_FILTER}): ${filteredSum} / ${count} - ${_.round(filteredSum/count*100, 2) || 0}%,`)
     
     const saveModel = await model.save(tf.io.withSaveHandler(obj2save => obj2save));
     await ClassificationModel.create({

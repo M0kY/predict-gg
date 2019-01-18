@@ -7,11 +7,18 @@ The goal of this project is to gather League of Legends games data from the Riot
 Make a local copy of this repo: `https://github.com/M0kY/predict-gg.git`  
 Setup a MongoDB database either on your local machine or remote https://cloud.mongodb.com.
 
-Create a collection named `gamestats` and import the data from `./dataset/gamestats.json`. If you want to gather your own data simply follow the instruction below on how to collect training data.
+Create a collection named `gamestats-clean` and import the data from `./dataset/gamestats-clean.json`. If you prefer to import raw data and
+prepare it for training yourself create a collection named `gamestats`, import the data from `./dataset/gamestats.json` and run the `cleanup` script.   
+For gathering your own data simply follow the instruction below on how to collect training data.
 
 Inside the folder of your local repo run  
 ```
 npm install
+```
+
+On Windows you may need to globally install `windows-build-tools`.
+```
+npm install -g windows-build-tools
 ```
 
 Create a `.env` file and use `.env.example` as template. Set the database connection info.  
@@ -25,6 +32,11 @@ The collected datapoints for each player are the following:
 ```
   teamId
   championId
+  numberOfGames
+  spell1Id
+  spell2Id
+  championMastery
+  highestAchievedSeasonTier
   visionScore
   longestTimeSpentLiving
   kills
@@ -36,6 +48,49 @@ The collected datapoints for each player are the following:
   visionWardsBoughtInGame
   deaths
   win
+  firstBloodAssist
+  magicDamageDealtToChampions
+  totalTimeCrowdControlDealt
+  tripleKills
+  neutralMinionsKilled
+  damageDealtToTurrets
+  physicalDamageDealtToChampions
+  largestMultiKill
+  wardsKilled
+  largestKillingSpree
+  quadraKills
+  teamObjective
+  magicDamageDealt
+  neutralMinionsKilledTeamJungle
+  magicalDamageTaken
+  firstInhibitorKill
+  trueDamageTaken
+  combatPlayerScore
+  largestCriticalStrike
+  goldSpent
+  trueDamageDealt
+  physicalDamageDealt
+  physicalDamageTaken
+  objectivePlayerScore
+  totalDamageDealt
+  neutralMinionsKilledEnemyJungle
+  wardsPlaced
+  turretKills
+  firstBloodKill
+  trueDamageDealtToChampions
+  goldEarned
+  killingSprees
+  unrealKills
+  firstTowerAssist
+  firstTowerKill
+  champLevel
+  doubleKills
+  inhibitorKills
+  firstInhibitorAssist
+  pentaKills
+  totalHeal
+  totalMinionsKilled
+  timeCCingOthers
   goldPerMinDeltas[0-10]
   goldPerMinDeltas[10-20]
   creepsPerMinDeltas[0-10]
@@ -44,7 +99,6 @@ The collected datapoints for each player are the following:
   xpPerMinDeltas[10-20]
   damageTakenPerMinDeltas[0-10]
   damageTakenPerMinDeltas[10-20]
-  numberOfGames
 ```
 
 From the dataset `10` items are used for testing the model while the rest are used for training. This is defined by the `TEST_BATCH_SIZE` variable.
@@ -58,7 +112,13 @@ npm start
 
 There is a limit to the number of available API call that can be made in a specific timeframe. It is possible to run multiple instances of the script for different regions since the limit is region based. The average time to collect a single game with the default settings is ~7 mins.
 
-When there is a big enough collection of gathered games train the classifier by running
+When there is a big enough collection of gathered games run the cleanup script to prepare data for training and save it in a new collection named `gamestats-clean`.
+
+```
+npm run cleanup
+```
+
+To train the classifier run
 
 ```
 npm run classify
@@ -72,7 +132,7 @@ npm run livegame "region" "summonerName"
 
 ## Conclusion
 
-It seems high ranking games are harder to predict then lower ones. This could be due to the fact on high levels of play players generally know the capabilites of the champion they play and thus perform decently in most cases. In such games team play and individual decison making take the spotlight and raw stats fall behind. However more testing is needed to confirm these claims.
+There are a few really important factors that play a role in the accuracy of the classifier. The main one is the fact the game itself has a matchmaking algorithm implemented. It's goal is to field two teams with close to equal chances of winning. The other factor is the assumption that high ranking games are harder to predict then lower ones. This is due to the fact on high levels of play players generally know the capabilites of the champion they play and thus perform decently in most cases. In such games team play and individual decison making gains more, while raw stats lose influence in the outcome of the game. However more testing is needed to confirm these claims.
 
 ## License
 

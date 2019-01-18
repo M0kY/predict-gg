@@ -15,14 +15,14 @@
   "author": "Moreno Vračar",
   "license": "MIT",
   "dependencies": {
-    "@tensorflow/tfjs": "^0.14.1",
-    "@tensorflow/tfjs-node": "^0.2.1",
-    "chalk": "^2.4.1",
+    "@tensorflow/tfjs": "^0.14.2",
+    "@tensorflow/tfjs-node": "^0.2.3",
+    "chalk": "^2.4.2",
     "dotenv": "^6.2.0",
     "kayn": "^0.9.4",
     "lodash": "^4.17.11",
     "moment": "^2.23.0",
-    "mongoose": "^5.4.1",
+    "mongoose": "^5.4.4",
     "mongoose-timestamp": "^0.6.0"
   }
 }
