@@ -11,6 +11,7 @@ const GameStatsModel = require('./src/models/gameStatsModel.js');
 const { getSummonerByParticipantId, filterNGamesByTime } = require('./src/shared/utils');
 const getStatsFromMatchList = require('./src/shared/getStatsFromMatchList');
 const errorLog = require('./src/shared/errorLog');
+const { TIERS } = require('./src/dataPointsDefs');
 
 const MATCH_ID = parseInt(process.env.STARTING_MATCH_ID, 10);
 const BATCH_SIZE = parseInt(process.env.BATCH_SIZE, 10) || 500;
@@ -141,7 +142,25 @@ const getParticipantsHistory = async (kayn, participants, participantIdentities,
         champions.data[pl.championId].name
       );
 
-      const stats = { teamId: pl.teamId, championId: pl.championId, ...await getStatsFromMatchList(kayn, list, summoner.player.currentAccountId)};
+      const mastery = await kayn.ChampionMasteryV4.get(summoner.player.summonerId)(pl.championId);
+
+      const playerStats = await getStatsFromMatchList(kayn, list, summoner.player.currentAccountId);
+      const stats = {
+        teamId: pl.teamId,
+        championId: pl.championId,
+        stats: playerStats,
+        numberOfGames: playerStats.length,
+        spell1Id: pl.spell1Id,
+        spell2Id: pl.spell2Id,
+        perk0: pl.perk0,
+        perk1: pl.perk1,
+        perk2: pl.perk2,
+        perk3: pl.perk3,
+        perk4: pl.perk4,
+        perk5: pl.perk5,
+        highestAchievedSeasonTier: TIERS[pl.highestAchievedSeasonTier],
+        championMastery: mastery.championPoints,
+      };
       gameStats2d.splice(pl.participantId, 0, stats);
 
     } catch(e) {
