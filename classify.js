@@ -23,11 +23,12 @@ const main = async () => {
     });
     console.log(chalk.bgMagenta('Dataset winners ratio BLUE TEAM WINS:', winCount.blueTeam, 'RED TEAM WINS:', winCount.redTeam))
 
-    const trainX = data.map(record => record.stats).slice(0, data.length - TEST_BATCH_SIZE);
-    const trainY = data.map(record => record.winner).slice(0, data.length - TEST_BATCH_SIZE);
+    const shuffledData = _.shuffle(data);
+    const trainX = shuffledData.map(record => record.stats).slice(0, data.length - TEST_BATCH_SIZE);
+    const trainY = shuffledData.map(record => record.winner).slice(0, data.length - TEST_BATCH_SIZE);
 
-    const testX = data.map(record => record.stats).slice(-TEST_BATCH_SIZE);
-    const testY = data.map(record => record.winner).slice(-TEST_BATCH_SIZE);
+    const testX = shuffledData.map(record => record.stats).slice(-TEST_BATCH_SIZE);
+    const testY = shuffledData.map(record => record.winner).slice(-TEST_BATCH_SIZE);
 
     const inputShape = [data[0].stats.length, Object.keys(data[0].stats[0]).length];
 
@@ -47,15 +48,15 @@ const main = async () => {
 
     const model = tf.sequential();
 
-    model.add(tf.layers.batchNormalization({ inputShape }));
+    model.add(tf.layers.batchNormalization({ inputShape, axis: 2 }));
 
     model.add(tf.layers.leakyReLU());
     model.add(tf.layers.leakyReLU());
+    model.add(tf.layers.leakyReLU());
+
     model.add(tf.layers.dropout({
       rate: 0.5
-    }));  
-    model.add(tf.layers.leakyReLU());
-    model.add(tf.layers.leakyReLU());
+    }));
 
     model.add(tf.layers.flatten());
 
@@ -68,13 +69,13 @@ const main = async () => {
     
     model.compile({
       loss: 'categoricalCrossentropy',
-      optimizer: tf.train.adam(.001),
+      optimizer: tf.train.momentum(.001, .99),
       metrics: ['accuracy'],
     });
     
     const history = await model.fit(trainingData, trainingLabels, {
       epochs: 1000,
-      validationSplit: 0.2,
+      validationSplit: 0.1,
       //verbose: 0,
       shuffle: true,
     })
