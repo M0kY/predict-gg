@@ -49,35 +49,26 @@ The collected datapoints for each player are the following:
   deaths
   win
   firstBloodAssist
-  magicDamageDealtToChampions
   totalTimeCrowdControlDealt
   tripleKills
   neutralMinionsKilled
   damageDealtToTurrets
-  physicalDamageDealtToChampions
   largestMultiKill
   wardsKilled
   largestKillingSpree
   quadraKills
   teamObjective
-  magicDamageDealt
   neutralMinionsKilledTeamJungle
-  magicalDamageTaken
   firstInhibitorKill
-  trueDamageTaken
   combatPlayerScore
   largestCriticalStrike
   goldSpent
-  trueDamageDealt
-  physicalDamageDealt
-  physicalDamageTaken
   objectivePlayerScore
   totalDamageDealt
   neutralMinionsKilledEnemyJungle
   wardsPlaced
   turretKills
   firstBloodKill
-  trueDamageDealtToChampions
   goldEarned
   killingSprees
   unrealKills

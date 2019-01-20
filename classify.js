@@ -9,35 +9,45 @@ require('./src/dbconnect');
 const GameStatsCleanModel = require('./src/models/gameStatsCleanModel.js');
 const ClassificationModel = require('./src/models/classificationModel.js');
 
-const TEST_BATCH_SIZE = process.env.TEST_BATCH_SIZE;
+const TEST_BATCH_SIZE = (process.env.TEST_BATCH_SIZE && process.env.TEST_BATCH_SIZE > 0 && process.env.TEST_BATCH_SIZE < 1) 
+  ? process.env.TEST_BATCH_SIZE : 0.2;
+const ACCURACY_FILTER = process.env.ACCURACY_FILTER || 0.85;
 
 const main = async () => {
   const startTime = moment();
   try {
-    const data = await GameStatsCleanModel.find({})
-    console.log(chalk.black.bgGreen('DB data successfuly loaded.'))
+    const data = await GameStatsCleanModel.find({});
+    console.log(chalk.black.bgGreen('DB data successfuly loaded.'));
 
-    let winCount = { blueTeam: 0, redTeam: 0 }
+    let winCount = { blueTeam: 0, redTeam: 0 };
     data.map(record => {
       record.winner === 1 ? winCount.blueTeam += 1 : winCount.redTeam += 1
     });
-    console.log(chalk.bgMagenta('Dataset winners ratio BLUE TEAM WINS:', winCount.blueTeam, 'RED TEAM WINS:', winCount.redTeam))
+    console.log(chalk.bgMagenta('Dataset winners ratio BLUE TEAM WINS:', winCount.blueTeam, 'RED TEAM WINS:', winCount.redTeam));
+
+    const testBatchSize = _.floor(data.length * TEST_BATCH_SIZE);
 
     const shuffledData = _.shuffle(data);
-    const trainX = shuffledData.map(record => record.stats).slice(0, data.length - TEST_BATCH_SIZE);
-    const trainY = shuffledData.map(record => record.winner).slice(0, data.length - TEST_BATCH_SIZE);
+    const trainX = shuffledData.map(record => record.stats).slice(0, data.length - testBatchSize);
+    const trainY = shuffledData.map(record => record.winner).slice(0, data.length - testBatchSize);
 
-    const testX = shuffledData.map(record => record.stats).slice(-TEST_BATCH_SIZE);
-    const testY = shuffledData.map(record => record.winner).slice(-TEST_BATCH_SIZE);
+    const testX = shuffledData.map(record => record.stats).slice(-testBatchSize);
+    const testY = shuffledData.map(record => record.winner).slice(-testBatchSize);
 
     const inputShape = [data[0].stats.length, Object.keys(data[0].stats[0]).length];
 
-    const trainingData = tf.tensor3d(trainX.map(record => record.map((prop, index) =>
-      index < 7 && index !== 2 && prop.numberOfGames > 0 ? _.round(prop/record[2], 2) : prop)
-    ));
-    const testingData = tf.tensor3d(testX.map(record => record.map((prop, index) =>
-      index < 7 && index !== 2 && prop.numberOfGames > 0 ? _.round(prop/record[2], 2) : prop)
-    ));
+    const trainingData = tf.tensor3d(trainX/*.map(record => record.map((prop, index) => {
+      if (index > 6 && index !== 2 && prop.numberOfGames > 0) { 
+        return _.round(prop/record[2], 2);
+      }
+      return prop;
+    }))*/);
+    const testingData = tf.tensor3d(testX/*.map(record => record.map((prop, index) => {
+      if (index > 6 && index !== 2 && prop.numberOfGames > 0) { 
+        return _.round(prop/record[2], 2);
+      }
+      return prop;
+    }))*/);
 
     const trainingLabels = tf.tensor2d(trainY.map(score => 
       score === 1 ? [1, 0] : [0, 1]
@@ -55,13 +65,13 @@ const main = async () => {
     model.add(tf.layers.leakyReLU());
 
     model.add(tf.layers.dropout({
-      rate: 0.5
+      rate: 0.25
     }));
 
     model.add(tf.layers.flatten());
 
     model.add(tf.layers.dense({
-      activation: 'softmax',
+      activation: 'sigmoid',
       units: 2,
       kernelInitializer: 'varianceScaling',
       useBias: false,
@@ -69,21 +79,21 @@ const main = async () => {
     
     model.compile({
       loss: 'categoricalCrossentropy',
-      optimizer: tf.train.momentum(.001, .99),
+      optimizer: tf.train.adam(.001/*, .99*/),
       metrics: ['accuracy'],
     });
     
     const history = await model.fit(trainingData, trainingLabels, {
-      epochs: 1000,
+      epochs: 100,
       validationSplit: 0.1,
       //verbose: 0,
       shuffle: true,
-    })
+    });
     console.log(chalk.black.bgYellow('Loss:', history.history.loss[history.history.loss.length - 1]));
     console.log(chalk.black.bgYellow('Acc:', history.history.acc[history.history.acc.length - 1]));
     
     const results = model.predict(testingData);
-    results.print()
+    results.print();
     
     let sum = 0;
     let filteredSum = 0;
@@ -91,19 +101,19 @@ const main = async () => {
     const values = Array.from(results.max(1).dataSync());
     Array.from(results.argMax(1).dataSync()).map((prediction, index) => {
       prediction === Array.from(testingLabels.argMax(1).dataSync())[index] && sum++;
-      if (values[index] > process.env.ACCURACY_FILTER) {
+      if (values[index] > ACCURACY_FILTER) {
         count++;
         prediction === Array.from(testingLabels.argMax(1).dataSync())[index] && filteredSum++;
-      };
+      }
     });
-    console.log(`Test Accuracy: ${sum} / ${TEST_BATCH_SIZE} - ${_.round(sum/TEST_BATCH_SIZE*100, 2)}%,`);
-    console.log(`Filtered Accuracy (values greater than ${process.env.ACCURACY_FILTER}): ${filteredSum} / ${count} - ${_.round(filteredSum/count*100, 2) || 0}%,`)
+    console.log(`Test Accuracy: ${sum} / ${testBatchSize} - ${_.round(sum/testBatchSize*100, 2)}%,`);
+    console.log(`Filtered Accuracy (values greater than ${ACCURACY_FILTER}): ${filteredSum} / ${count} - ${_.round(filteredSum/count*100, 2) || 0}%,`);
     
     const saveModel = await model.save(tf.io.withSaveHandler(obj2save => obj2save));
     await ClassificationModel.create({
       modelTopology: JSON.stringify(saveModel.modelTopology), 
       weightData: Buffer.from(new Uint8Array(saveModel.weightData)),
-      weightSpecs: saveModel.weightSpecs
+      weightSpecs: saveModel.weightSpecs,
     });
     console.log(chalk.black.bgGreen('Model saved to database.'));
 
