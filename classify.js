@@ -36,18 +36,18 @@ const main = async () => {
 
     const inputShape = [data[0].stats.length, Object.keys(data[0].stats[0]).length];
 
-    const trainingData = tf.tensor3d(trainX/*.map(record => record.map((prop, index) => {
-      if (index > 6 && index !== 2 && prop.numberOfGames > 0) { 
-        return _.round(prop/record[2], 2);
+    const trainingData = tf.tensor3d(trainX.map(record => record.map(player => player.map((stat, index) => {
+      if (index > 6 && index !== 2 && stat[2] > 0) { 
+        return _.round(stat/stat[2], 2);
       }
-      return prop;
-    }))*/);
-    const testingData = tf.tensor3d(testX/*.map(record => record.map((prop, index) => {
-      if (index > 6 && index !== 2 && prop.numberOfGames > 0) { 
-        return _.round(prop/record[2], 2);
+      return stat;
+    }))));
+    const testingData = tf.tensor3d(testX.map(record => record.map(player => player.map((stat, index) => {
+      if (index > 6 && index !== 2 && stat[2] > 0) { 
+        return _.round(stat/stat[2], 2);
       }
-      return prop;
-    }))*/);
+      return stat;
+    }))));
 
     const trainingLabels = tf.tensor2d(trainY.map(score => 
       score === 1 ? [1, 0] : [0, 1]
