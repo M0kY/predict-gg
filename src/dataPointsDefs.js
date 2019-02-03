@@ -1,4 +1,4 @@
-const dataPointsObject = [
+const dataPoints = [
   'stats.visionScore',
   'stats.longestTimeSpentLiving',
   'stats.kills',
@@ -63,20 +63,6 @@ const dataPointsObject = [
   'timeline.damageTakenPerMinDeltas[10-20]',
 ];
 
-const TIERS = {
-  CHALLENGER: 9,
-  GRANDMASTER: 8,
-  MASTER: 7,
-  DIAMOND: 6,
-  PLATINUM: 5,
-  GOLD: 4,
-  SILVER: 3,
-  BRONZE: 2,
-  IRON: 1,
-  UNRANKED: 0,
-}
-
 module.exports = {
-  dataPointsObject,
-  TIERS,
+  dataPoints,
 };

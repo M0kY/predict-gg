@@ -36,7 +36,7 @@ The collected datapoints for each player are the following:
   spell1Id
   spell2Id
   championMastery
-  highestAchievedSeasonTier
+  gameDuration
   visionScore
   longestTimeSpentLiving
   kills

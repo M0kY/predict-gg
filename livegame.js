@@ -11,6 +11,7 @@ const ClassificationModel = require('./src/models/classificationModel.js');
 const PredictionsModel = require('./src/models/predictionsModel.js')
 
 const getStatsFromMatchList = require('./src/shared/getStatsFromMatchList');
+const { sumArrayOfObjectsByProps } = require('./src/shared/utils');
 
 const GAMES_PER_PLAYER = parseInt(process.env.GAMES_PER_PLAYER, 10) || 30;
 const RANKED_5X5_SOLO = parseInt(process.env.QUEUE_ID, 10) || 420;
@@ -75,9 +76,12 @@ const main = async () => {
       JSON.parse(modelData.modelTopology), modelData.weightSpecs, new Uint8Array(modelData.weightData.buffer).buffer
     ));
 
-    const testingData = tf.tensor3d([playerStats.map(prop =>  
-      Object.keys(prop).map(key => prop[key])
-    )]);
+    const testingData = tf.tensor3d([playerStats.map(player => player.map((stat, index) => {
+      if (index > 6 && index !== 2 && stat[2] > 0) { 
+        return _.round(stat/stat[2], 2);
+      }
+      return stat;
+    }))]);
 
     const result = model.predict(testingData);
     result.print();
@@ -122,7 +126,19 @@ const getParticipantsData = async (kayn, participants) => {
         champions.data[pl.championId].name
       );
       
-      const stats = { teamId: pl.teamId, ...await getStatsFromMatchList(kayn, list, summoner.accountId)};
+      const mastery = await kayn.ChampionMasteryV4.get(pl.summonerId)(pl.championId);
+      const playerStats = await getStatsFromMatchList(kayn, list, summoner.accountId);
+
+      const stats = [ 
+        pl.teamId,
+        pl.championId,
+        playerStats.length,
+        pl.spell1Id,
+        pl.spell2Id,
+        mastery.championPoints,
+        ...sumArrayOfObjectsByProps(playerStats),
+      ];
+
       gameStats2d.push(stats);
 
     } catch(e) {
