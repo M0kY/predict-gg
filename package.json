@@ -19,10 +19,10 @@
     "@tensorflow/tfjs-node": "^0.2.3",
     "chalk": "^2.4.2",
     "dotenv": "^6.2.0",
-    "kayn": "^0.9.4",
+    "kayn": "^0.9.8",
     "lodash": "^4.17.11",
-    "moment": "^2.23.0",
-    "mongoose": "^5.4.4",
+    "moment": "^2.24.0",
+    "mongoose": "^5.4.9",
     "mongoose-timestamp": "^0.6.0"
   }
 }
