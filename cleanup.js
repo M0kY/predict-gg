@@ -21,10 +21,10 @@ const main = async () => {
         gameStats.unshift(
           playerStats.teamId,
           playerStats.championId,
-          playerStats.numberOfGames,
           playerStats.spell1Id,
           playerStats.spell2Id,
           playerStats.championMastery,
+          playerStats.numberOfGames,
         );
         return gameStats;
       });

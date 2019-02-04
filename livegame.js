@@ -132,10 +132,10 @@ const getParticipantsData = async (kayn, participants) => {
       const stats = [ 
         pl.teamId,
         pl.championId,
-        playerStats.length,
         pl.spell1Id,
         pl.spell2Id,
         mastery.championPoints,
+        playerStats.length,
         ...sumArrayOfObjectsByProps(playerStats),
       ];
 

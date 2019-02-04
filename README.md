@@ -32,10 +32,10 @@ The collected datapoints for each player are the following:
 ```
   teamId
   championId
-  numberOfGames
   spell1Id
   spell2Id
   championMastery
+  numberOfGames
   gameDuration
   visionScore
   longestTimeSpentLiving
