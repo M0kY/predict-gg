@@ -71,7 +71,7 @@ const main = async () => {
     model.add(tf.layers.flatten());
 
     model.add(tf.layers.dense({
-      activation: 'sigmoid',
+      activation: 'softmax',
       units: 2,
       kernelInitializer: 'varianceScaling',
       useBias: false,
