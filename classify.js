@@ -28,13 +28,29 @@ const main = async () => {
     const testBatchSize = _.floor(data.length * TEST_BATCH_SIZE);
 
     const shuffledData = _.shuffle(data);
-    const trainX = shuffledData.map(record => record.stats).slice(0, data.length - testBatchSize);
+    const trainX = shuffledData.map(record => {
+      let sums = [];
+      let sums2 = [];
+      record.stats[0].forEach((__, index) => {
+        sums[index] = record.stats[0][index] + record.stats[1][index] + record.stats[2][index] + record.stats[3][index] + record.stats[4][index];
+        sums2[index] = record.stats[5][index] + record.stats[6][index] + record.stats[7][index] + record.stats[8][index] + record.stats[9][index];
+      });
+      return [sums, sums2];
+    }).slice(0, data.length - testBatchSize);
     const trainY = shuffledData.map(record => record.winner).slice(0, data.length - testBatchSize);
 
-    const testX = shuffledData.map(record => record.stats).slice(-testBatchSize);
+    const testX = shuffledData.map(record => {
+      let sumsBlue = [];
+      let sumsRed = [];
+      record.stats[0].forEach((__, index) => {
+        sumsBlue[index] = record.stats[0][index] + record.stats[1][index] + record.stats[2][index] + record.stats[3][index] + record.stats[4][index];
+        sumsRed[index] = record.stats[5][index] + record.stats[6][index] + record.stats[7][index] + record.stats[8][index] + record.stats[9][index];
+      });
+      return [sumsBlue, sumsRed];
+    }).slice(-testBatchSize);
     const testY = shuffledData.map(record => record.winner).slice(-testBatchSize);
 
-    const inputShape = [data[0].stats.length, Object.keys(data[0].stats[0]).length];
+    const inputShape = [2, Object.keys(data[0].stats[0]).length];
 
     const trainingData = tf.tensor3d(trainX.map(record => record.map(player => player.map((stat, index) => {
       if (index > 6 && index !== 2 && stat[2] > 0) { 
