@@ -76,6 +76,15 @@ const main = async () => {
 
     model.add(tf.layers.batchNormalization({ inputShape, axis: 2 }));
 
+    model.add(tf.layers.dense({
+      units: 200,
+    }));
+
+    model.add(tf.layers.batchNormalization({ axis: 2 }));
+    model.add(tf.layers.dropout({
+      rate: 0.5
+    }));
+
     model.add(tf.layers.leakyReLU());
     model.add(tf.layers.leakyReLU());
     model.add(tf.layers.leakyReLU());
@@ -95,7 +104,7 @@ const main = async () => {
     
     model.compile({
       loss: 'categoricalCrossentropy',
-      optimizer: tf.train.adam(.001/*, .99*/),
+      optimizer: tf.train.adam(.02/*, .99*/),
       metrics: ['accuracy'],
     });
     
@@ -125,13 +134,13 @@ const main = async () => {
     console.log(`Test Accuracy: ${sum} / ${testBatchSize} - ${_.round(sum/testBatchSize*100, 2)}%,`);
     console.log(`Filtered Accuracy (values greater than ${ACCURACY_FILTER}): ${filteredSum} / ${count} - ${_.round(filteredSum/count*100, 2) || 0}%,`);
     
-    const saveModel = await model.save(tf.io.withSaveHandler(obj2save => obj2save));
-    await ClassificationModel.create({
+    /*const saveModel = await model.save(tf.io.withSaveHandler(obj2save => obj2save));
+    const savedModelData = await ClassificationModel.create({
       modelTopology: JSON.stringify(saveModel.modelTopology), 
       weightData: Buffer.from(new Uint8Array(saveModel.weightData)),
       weightSpecs: saveModel.weightSpecs,
     });
-    console.log(chalk.black.bgGreen('Model saved to database.'));
+    console.log(chalk.black.bgGreen(`Model ${savedModelData._id} saved to database.`));*/
 
   } catch(e) {
     console.log(chalk.bgRed('Error:', e.message));
