@@ -75,8 +75,15 @@ const main = async () => {
     const model = await tf.loadModel(tf.io.fromMemory(
       JSON.parse(modelData.modelTopology), modelData.weightSpecs, new Uint8Array(modelData.weightData.buffer).buffer
     ));
+   
+    const sumsBlue = [];
+    const sumsRed = [];
+    playerStats[0].forEach((__, index) => {
+      sumsBlue[index] = playerStats[0][index] + playerStats[1][index] + playerStats[2][index] + playerStats[3][index] + playerStats[4][index];
+      sumsRed[index] = playerStats[5][index] + playerStats[6][index] + playerStats[7][index] + playerStats[8][index] + playerStats[9][index];
+    });
 
-    const testingData = tf.tensor3d([playerStats.map(player => player.map((stat, index) => {
+    const testingData = tf.tensor3d([[sumsBlue, sumsRed].map(player => player.map((stat, index) => {
       if (index > 6 && index !== 2 && stat[2] > 0) { 
         return _.round(stat/stat[2], 2);
       }
@@ -114,7 +121,15 @@ const getParticipantsData = async (kayn, participants) => {
     
     try {
       const summoner = await kayn.SummonerV4.by.id(pl.summonerId);
-      const gameList = await kayn.MatchlistV4.by.accountID(summoner.accountId).query({ queue: RANKED_5X5_SOLO, championId: pl.championId });
+      const gameList = await kayn.MatchlistV4.by.accountID(summoner.accountId).query({ queue: RANKED_5X5_SOLO, championId: pl.championId })
+        .then()
+        .catch(e => {
+          if (e.statusCode === 404) {
+            console.log(chalk.bgRed(`No games for summoner found in matchlist.`));
+            return [];
+          }
+          throw new Error(e);
+        });
       const list = gameList.matches.map(game => game.gameId).slice(0, GAMES_PER_PLAYER);
      
       console.log(chalk.bgMagenta(`================== ${summoner.name} ==================`));
@@ -127,7 +142,7 @@ const getParticipantsData = async (kayn, participants) => {
       );
       
       const mastery = await kayn.ChampionMasteryV4.get(pl.summonerId)(pl.championId);
-      const playerStats = await getStatsFromMatchList(kayn, list, summoner.accountId);
+      const playerStats = getStatsFromMatchList(kayn, list, summoner.accountId);
 
       const stats = [ 
         pl.teamId,

@@ -52,18 +52,24 @@ const main = async () => {
 
     const inputShape = [2, Object.keys(data[0].stats[0]).length];
 
-    const trainingData = tf.tensor3d(trainX.map(record => record.map(player => player.map((stat, index) => {
-      if (index > 6 && index !== 2 && stat[2] > 0) { 
-        return _.round(stat/stat[2], 2);
+    const trainingData = tf.tensor3d(trainX/*.map(record => record.map(player => player.map((stat, index) => {
+      if (index > 5 && index !== 2 && player[2] > 0) {
+        if (index !== 6) {
+          _.round((stat/player[2]) / (player[6] / player[2] / 1000), 2)
+        }
+        return _.round(stat/player[2], 2);
       }
       return stat;
-    }))));
-    const testingData = tf.tensor3d(testX.map(record => record.map(player => player.map((stat, index) => {
-      if (index > 6 && index !== 2 && stat[2] > 0) { 
-        return _.round(stat/stat[2], 2);
+    })))*/);
+    const testingData = tf.tensor3d(testX/*.map(record => record.map(player => player.map((stat, index) => {
+      if (index > 5 && index !== 2 && player[2] > 0) { 
+        if (index !== 6) {
+          _.round((stat/player[2]) / (player[6] / player[2] / 1000), 2)
+        }
+        return _.round(stat/player[2], 2);
       }
       return stat;
-    }))));
+    })))*/);
 
     const trainingLabels = tf.tensor2d(trainY.map(score => 
       score === 1 ? [1, 0] : [0, 1]
@@ -104,7 +110,7 @@ const main = async () => {
     
     model.compile({
       loss: 'categoricalCrossentropy',
-      optimizer: tf.train.adam(.02/*, .99*/),
+      optimizer: tf.train.adam(.0001),
       metrics: ['accuracy'],
     });
     
@@ -134,13 +140,13 @@ const main = async () => {
     console.log(`Test Accuracy: ${sum} / ${testBatchSize} - ${_.round(sum/testBatchSize*100, 2)}%,`);
     console.log(`Filtered Accuracy (values greater than ${ACCURACY_FILTER}): ${filteredSum} / ${count} - ${_.round(filteredSum/count*100, 2) || 0}%,`);
     
-    /*const saveModel = await model.save(tf.io.withSaveHandler(obj2save => obj2save));
+    const saveModel = await model.save(tf.io.withSaveHandler(obj2save => obj2save));
     const savedModelData = await ClassificationModel.create({
       modelTopology: JSON.stringify(saveModel.modelTopology), 
       weightData: Buffer.from(new Uint8Array(saveModel.weightData)),
       weightSpecs: saveModel.weightSpecs,
     });
-    console.log(chalk.black.bgGreen(`Model ${savedModelData._id} saved to database.`));*/
+    console.log(chalk.black.bgGreen(`Model ${savedModelData._id} saved to database.`));
 
   } catch(e) {
     console.log(chalk.bgRed('Error:', e.message));
