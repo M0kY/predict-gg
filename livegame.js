@@ -125,7 +125,7 @@ const getParticipantsData = async (kayn, participants) => {
         .then()
         .catch(e => {
           if (e.statusCode === 404) {
-            console.log(chalk.bgRed(`No games for summoner found in matchlist.`));
+            console.log(chalk.bgYellow.black(`No games for summoner found in matchlist.`));
             return [];
           }
           throw new Error(e);
@@ -141,7 +141,15 @@ const getParticipantsData = async (kayn, participants) => {
         champions.data[pl.championId].name
       );
       
-      const mastery = await kayn.ChampionMasteryV4.get(pl.summonerId)(pl.championId);
+      const mastery = await kayn.ChampionMasteryV4.get(pl.summonerId)(pl.championId)
+        .then()
+        .catch(e => {
+          if (e.statusCode === 404) {
+            console.log(chalk.bgYellow.black(`No mastery points found for summoner on champion.`));
+            return { championPoints: 0 };
+          }
+          throw new Error(e);
+        });
       const playerStats = getStatsFromMatchList(kayn, list, summoner.accountId);
 
       const stats = [ 

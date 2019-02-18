@@ -11,7 +11,6 @@ const GameStatsModel = require('./src/models/gameStatsModel.js');
 const { getSummonerByParticipantId, filterNGamesByTime } = require('./src/shared/utils');
 const getStatsFromMatchList = require('./src/shared/getStatsFromMatchList');
 const errorLog = require('./src/shared/errorLog');
-const { TIERS } = require('./src/dataPointsDefs');
 
 const MATCH_ID = parseInt(process.env.STARTING_MATCH_ID, 10);
 const BATCH_SIZE = parseInt(process.env.BATCH_SIZE, 10) || 500;
@@ -130,7 +129,15 @@ const getParticipantsHistory = async (kayn, participants, participantIdentities,
     const summoner = getSummonerByParticipantId(participantIdentities, pl.participantId);
     
     try {
-      const gameList = await kayn.MatchlistV4.by.accountID(summoner.player.currentAccountId).query({ queue: RANKED_5X5_SOLO, championId: pl.championId });
+      const gameList = await kayn.MatchlistV4.by.accountID(summoner.player.currentAccountId).query({ queue: RANKED_5X5_SOLO, championId: pl.championId })
+        .then()
+        .catch(e => {
+          if (e.statusCode === 404) {
+            console.log(chalk.bgYellow.black(`No games for summoner found in matchlist.`));
+            return [];
+          }
+          throw new Error(e);
+        });
       const list = filterNGamesByTime(gameList.matches, GAMES_PER_PLAYER, gameCreation);
      
       console.log(`================== ${summoner.player.summonerName} ==================`)
@@ -142,9 +149,17 @@ const getParticipantsHistory = async (kayn, participants, participantIdentities,
         champions.data[pl.championId].name
       );
 
-      const mastery = await kayn.ChampionMasteryV4.get(summoner.player.summonerId)(pl.championId);
+      const mastery = await kayn.ChampionMasteryV4.get(summoner.player.summonerId)(pl.championId)
+        .then()
+        .catch(e => {
+          if (e.statusCode === 404) {
+            console.log(chalk.bgYellow.black(`No mastery points found for summoner on champion.`));
+            return { championPoints: 0 };
+          }
+          throw new Error(e);
+        });
 
-      const playerStats = await getStatsFromMatchList(kayn, list, summoner.player.currentAccountId);
+      const playerStats = getStatsFromMatchList(kayn, list, summoner.player.currentAccountId);
       const stats = {
         teamId: pl.teamId,
         championId: pl.championId,
@@ -158,7 +173,7 @@ const getParticipantsHistory = async (kayn, participants, participantIdentities,
         perk3: pl.perk3,
         perk4: pl.perk4,
         perk5: pl.perk5,
-        highestAchievedSeasonTier: TIERS[pl.highestAchievedSeasonTier],
+        highestAchievedSeasonTier: pl.highestAchievedSeasonTier,
         championMastery: mastery.championPoints,
       };
       gameStats2d.splice(pl.participantId, 0, stats);
