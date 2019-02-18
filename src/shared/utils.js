@@ -1,3 +1,6 @@
+const _ = require('lodash');
+const { dataPoints } = require('../dataPointsDefs');
+
 const getParticipantIdByAccountId = (participantIdentities, accountId) => (
   participantIdentities.find(part => part.player.currentAccountId === accountId).participantId
 );
@@ -38,9 +41,25 @@ const sumArrayOfObjectsByProps = (stats) => {
   return gameStats;
 }
 
+const sumObjectFromArrayOfObjects = (stats) => {
+  const sumObject = { gameDuration: 0 };
+  dataPoints.map(dataPoint => {
+    const key = dataPoint.replace('stats.', '').replace('timeline.', '');
+    sumObject[key] = 0;
+  });
+
+  const keys = Object.keys(sumObject);
+  keys.forEach((key) => {
+    sumObject[key] = _.sumBy(stats, key);
+  });
+
+  return sumObject;
+}
+
 module.exports = {
   getParticipantIdByAccountId,
   getSummonerByParticipantId,
   filterNGamesByTime,
   sumArrayOfObjectsByProps,
+  sumObjectFromArrayOfObjects,
 }

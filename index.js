@@ -8,7 +8,7 @@ const chalk = require('chalk');
 require('./src/dbconnect');
 const GameStatsModel = require('./src/models/gameStatsModel.js');
 
-const { getSummonerByParticipantId, filterNGamesByTime } = require('./src/shared/utils');
+const { getSummonerByParticipantId, filterNGamesByTime, sumObjectFromArrayOfObjects } = require('./src/shared/utils');
 const getStatsFromMatchList = require('./src/shared/getStatsFromMatchList');
 const errorLog = require('./src/shared/errorLog');
 
@@ -134,7 +134,7 @@ const getParticipantsHistory = async (kayn, participants, participantIdentities,
         .catch(e => {
           if (e.statusCode === 404) {
             console.log(chalk.bgYellow.black(`No games for summoner found in matchlist.`));
-            return [];
+            return { matches: [], totalGames: 0 };
           }
           throw new Error(e);
         });
@@ -146,6 +146,7 @@ const getParticipantsHistory = async (kayn, participants, participantIdentities,
         summoner.player.currentAccountId,
         pl.participantId,
         list.length,
+        gameList.totalGames,
         champions.data[pl.championId].name
       );
 
@@ -159,12 +160,13 @@ const getParticipantsHistory = async (kayn, participants, participantIdentities,
           throw new Error(e);
         });
 
-      const playerStats = getStatsFromMatchList(kayn, list, summoner.player.currentAccountId);
+      const playerStats = await getStatsFromMatchList(kayn, list, summoner.player.currentAccountId);
       const stats = {
         teamId: pl.teamId,
         championId: pl.championId,
-        stats: playerStats,
+        stats: sumObjectFromArrayOfObjects(playerStats),
         numberOfGames: playerStats.length,
+        totalGamesOnChampion: gameList.totalGames,
         spell1Id: pl.spell1Id,
         spell2Id: pl.spell2Id,
         perk0: pl.perk0,
