@@ -72,7 +72,7 @@ const main = async () => {
     
 
     const modelData = await ClassificationModel.findOne().sort({ field: 'asc', _id: -1 }).limit(1);
-    const model = await tf.loadModel(tf.io.fromMemory(
+    const model = await tf.loadLayersModel(tf.io.fromMemory(
       JSON.parse(modelData.modelTopology), modelData.weightSpecs, new Uint8Array(modelData.weightData.buffer).buffer
     ));
    
@@ -150,7 +150,7 @@ const getParticipantsData = async (kayn, participants) => {
           }
           throw new Error(e);
         });
-      const playerStats = getStatsFromMatchList(kayn, list, summoner.accountId);
+      const playerStats = await getStatsFromMatchList(kayn, list, summoner.accountId);
 
       const stats = [ 
         pl.teamId,
