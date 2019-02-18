@@ -3,6 +3,7 @@ const _ = require('lodash');
 const { Kayn, REGIONS } = require('kayn');
 const moment = require('moment');
 const chalk = require('chalk');
+const rp = require('request-promise-native');
 
 // connect to database with mongoose
 require('./src/dbconnect');
@@ -30,6 +31,7 @@ const logInitialSettings = () => {
 }
 
 let champions = {};
+let championGG = [];
 
 const main = async () => {
   try {
@@ -57,6 +59,24 @@ const main = async () => {
     });
 
     champions = await kayn.DDragon.Champion.listFullDataByIdWithParentAsId();
+    
+    const options = {
+      uri: 'https://api.champion.gg/v2/champions',
+      qs: {
+        api_key: process.env.CHAMPIONGG_API_KEY,
+        champData: 'normalized,overallPerformanceScore,wins',
+        sort: 'championId-asc',
+        limit: 1000,
+      },
+      json: true,
+    };
+    
+    championGG = await rp(options)
+      .then()
+      .catch(e => {
+        errorLog(e);
+      });
+
 
     const matchIdList = _.range(MATCH_ID, MATCH_ID - BATCH_SIZE);
 
@@ -177,6 +197,10 @@ const getParticipantsHistory = async (kayn, participants, participantIdentities,
         perk5: pl.perk5,
         highestAchievedSeasonTier: pl.highestAchievedSeasonTier,
         championMastery: mastery.championPoints,
+        normalizedWinRate: _.maxBy(championGG.filter(record => record.championId === pl.championId), 'playRate').normalized.winRate,
+        normalizedPlayRate: _.maxBy(championGG.filter(record => record.championId === pl.championId), 'playRate').normalized.playRate,
+        normalizedBanRate: _.maxBy(championGG.filter(record => record.championId === pl.championId), 'playRate').normalized.banRate,
+        champOverallPerformance: _.maxBy(championGG.filter(record => record.championId === pl.championId), 'playRate').overallPerformanceScore,
       };
       gameStats2d.splice(pl.participantId, 0, stats);
 
