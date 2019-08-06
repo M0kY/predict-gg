@@ -8,15 +8,17 @@ Make a local copy of this repo: `https://github.com/M0kY/predict-gg.git`
 Setup a MongoDB database either on your local machine or remote https://cloud.mongodb.com.
 
 Create a collection named `gamestats-clean` and import the data from `./dataset/gamestats-clean.json`. If you prefer to import raw data and
-prepare it for training yourself create a collection named `gamestats`, import the data from `./dataset/gamestats.json` and run the `cleanup` script.   
+prepare it for training yourself create a collection named `gamestats`, import the data from `./dataset/gamestats.json` and run the `cleanup` script.  
 For gathering your own data simply follow the instruction below on how to collect training data.
 
-Inside the folder of your local repo run  
+Inside the folder of your local repo run
+
 ```
 npm install
 ```
 
 On Windows you may need to globally install `windows-build-tools`.
+
 ```
 npm install -g windows-build-tools
 ```
@@ -96,7 +98,8 @@ From the dataset `10` items are used for testing the model while the rest are us
 
 ## Basic Usage
 
-First collect the training data by running  
+First collect the training data by running
+
 ```
 npm start
 ```
@@ -127,4 +130,4 @@ There are a few really important factors that play a role in the accuracy of the
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
