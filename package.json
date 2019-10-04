@@ -10,7 +10,9 @@
     "cleanup": "node cleanup.js",
     "test": "lint-staged && eslint --max-warnings 0 .",
     "lint-prettier": "lint-staged",
-    "eslint": "eslint --max-warnings 0 ."
+    "eslint": "eslint --max-warnings 0 .",
+    "snyk-protect": "snyk protect",
+    "prepare": "npm run snyk-protect"
   },
   "author": "Moreno Vračar",
   "license": "MIT",
@@ -24,6 +26,8 @@
     "moment": "^2.24.0",
     "mongoose": "^5.6.7",
     "mongoose-timestamp": "^0.6.0",
-    "request-promise-native": "^1.0.7"
-  }
+    "request-promise-native": "^1.0.7",
+    "snyk": "^1.230.5"
+  },
+  "snyk": true
 }
