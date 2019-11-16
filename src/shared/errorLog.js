@@ -1,6 +1,4 @@
-const chalk = require('chalk');
-
-const errorLog = e => {
+const errorLog = (e) => {
   if (e.error) {
     const error = JSON.parse(e.error.error);
     throw new Error(`${error.status.status_code} - ${error.status.message}`);

@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
 const timestamps = require('mongoose-timestamp');
 
-const predictionsSchema = new mongoose.Schema({
+const predictionsSchema = new mongoose.Schema(
+  {
     gameId: Number,
     regionId: String,
     queueId: Number,
@@ -9,10 +10,12 @@ const predictionsSchema = new mongoose.Schema({
     stats: {},
     executionDurationInMs: Number,
     classificationModelId: String,
-    prediction: Array
-}, {
+    prediction: Array,
+  },
+  {
     collection: 'predictions',
-});
+  },
+);
 
 predictionsSchema.plugin(timestamps);
 

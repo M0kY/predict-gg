@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
 const timestamps = require('mongoose-timestamp');
 
-const gameStatsSchema = new mongoose.Schema({
+const gameStatsSchema = new mongoose.Schema(
+  {
     gameId: Number,
     regionId: String,
     seasonId: Number,
@@ -10,9 +11,11 @@ const gameStatsSchema = new mongoose.Schema({
     version: String,
     stats: {},
     winner: Number,
-}, {
+  },
+  {
     collection: 'gamestats',
-});
+  },
+);
 
 gameStatsSchema.plugin(timestamps);
 

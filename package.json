@@ -15,8 +15,8 @@
   "author": "Moreno Vračar",
   "license": "MIT",
   "dependencies": {
-    "@tensorflow/tfjs": "^1.2.5",
-    "@tensorflow/tfjs-node": "^1.2.5",
+    "@tensorflow/tfjs": "^1.2.3",
+    "@tensorflow/tfjs-node": "^1.2.3",
     "chalk": "^3.0.0",
     "dotenv": "^8.0.0",
     "kayn": "^0.10.0",
@@ -25,5 +25,30 @@
     "mongoose": "^5.7.5",
     "mongoose-timestamp": "^0.6.0",
     "request-promise-native": "^1.0.7"
+  },
+  "devDependencies": {
+    "babel-eslint": "^10.0.3",
+    "eslint": "^6.6.0",
+    "eslint-config-airbnb-base": "^14.0.0",
+    "eslint-plugin-import": "^2.18.2",
+    "eslint-plugin-prettier": "^3.1.1",
+    "husky": "^3.0.9",
+    "lint-staged": "^9.4.3",
+    "prettier": "^1.19.1"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "echo 'Beep Bop... The time of man has come to the end...' && npm test && echo 'GG! Commiting now...'"
+    }
+  },
+  "lint-staged": {
+    "*.{json,css,md}": [
+      "prettier --write",
+      "git add"
+    ],
+    "js": [
+      "eslint --max-warnings 0 --fix",
+      "git add"
+    ]
   }
 }
