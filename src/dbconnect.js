@@ -21,6 +21,7 @@ if (
     validateOptions: true,
     loggerLevel: 'error',
     useNewUrlParser: true,
+    useUnifiedTopology: true,
   };
   mongoose
     .connect(mongooseUri, mongooseOptions)

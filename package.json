@@ -22,7 +22,7 @@
     "kayn": "^0.10.0",
     "lodash": "^4.17.15",
     "moment": "^2.24.0",
-    "mongoose": "^5.7.5",
+    "mongoose": "^5.8.1",
     "mongoose-timestamp": "^0.6.0",
     "request-promise-native": "^1.0.7"
   },
@@ -43,12 +43,10 @@
   },
   "lint-staged": {
     "*.{json,css,md}": [
-      "prettier --write",
-      "git add"
+      "prettier --write"
     ],
     "js": [
-      "eslint --max-warnings 0 --fix",
-      "git add"
+      "eslint --max-warnings 0 --fix"
     ]
   }
 }
